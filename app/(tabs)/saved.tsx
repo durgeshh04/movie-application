@@ -1,14 +1,10 @@
-import React from "react";
 import { StyleSheet, Text, View } from "react-native";
-
-const onboarding = () => {
+const Saved = () => {
   return (
     <View className="flex-1 justify-center items-center">
-      <Text className="text-2xl text-primary font-bold">Onboarding Screen</Text>
+      <Text className="text-center text-lg font-semibold">Saved</Text>
     </View>
   );
 };
-
-export default onboarding;
-
+export default Saved;
 const styles = StyleSheet.create({});
