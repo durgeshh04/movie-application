@@ -1,8 +1,8 @@
 import { StyleSheet, Text, View } from "react-native";
 const Profile = () => {
   return (
-    <View>
-      <Text>Profile</Text>
+    <View className="flex-1 justify-center items-center">
+      <Text className="text-center text-lg font-semibold">Profile</Text>
     </View>
   );
 };

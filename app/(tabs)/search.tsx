@@ -1,8 +1,8 @@
 import { StyleSheet, Text, View } from "react-native";
 const Search = () => {
   return (
-    <View>
-      <Text>Search</Text>
+    <View className="flex-1 justify-center items-center">
+      <Text className="text-center text-lg font-semibold">Search</Text>
     </View>
   );
 };
