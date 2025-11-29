@@ -1,42 +1,61 @@
-// ...existing code...
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Search from "./components/Search";
 import Spinner from "./components/Spinner";
+import MovieCard from "./components/MovieCard";
 
 const App = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [data, setData] = useState([]);
-  const [errorMessage, setErrorMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState(null);
   const [loader, setLoader] = useState(true);
 
-  const API_URL =
-    "https://my-json-server.typicode.com/horizon-code-academy/fake-movies-api/movies";
+  const BASE_API_URL = "https://api.themoviedb.org/3/discover/movie";
+  const SEARCH_API_URL = "https://api.themoviedb.org/3/search/movie";
+  const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 
-  const getData = async () => {
-    if (!API_URL) {
-      console.warn("API_URL is not defined");
-      setData([]);
+  const API_OPTIONS = {
+    method: "GET",
+    headers: {
+      accept: "application/json",
+      Authorization: `Bearer ${API_KEY}`,
+    },
+  };
+
+  const getData = useCallback(async () => {
+    if (!API_KEY) {
+      setErrorMessage("API key is missing. Check your environment variables.");
+      setLoader(false);
       return;
     }
 
     try {
-      const res = await fetch(API_URL);
-      if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
-      const data = await res.json();
-      setData(data);
-      setLoader(false);
+      setLoader(true);
+      setErrorMessage(null);
+
+      const endpoint = searchTerm
+        ? `${SEARCH_API_URL}?query=${encodeURIComponent(searchTerm)}&page=1`
+        : `${BASE_API_URL}?page=1&sort_by=popularity.desc`;
+
+      const res = await fetch(endpoint, API_OPTIONS);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      const jsonData = await res.json();
+      setData(jsonData);
     } catch (error) {
       console.error("Failed to load movies:", error);
-      setLoader(false);
       setErrorMessage("Something went wrong while fetching the data.");
+      setData({ results: [] });
+    } finally {
+      setLoader(false);
     }
-  };
+  }, [searchTerm, API_KEY]);
 
   useEffect(() => {
     getData();
-  }, []);
+  }, [getData]);
 
-  const movies = Array.isArray(data) ? data : [];
+  const movies = Array.isArray(data.results) ? data.results : [];
+
   return (
     <main>
       <div className="pattern" />
@@ -45,15 +64,17 @@ const App = () => {
           <img src="./hero.png" alt="Hero Banner" />
           <h1>
             Find <span className="text-gradient">Movies</span> You'll Enjoy
-            Without the Hassel
+            Without the Hassle
           </h1>
         </header>
         <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-        <div className="all-movies">
-          <h2>All Movies</h2>
+        <section className="all-movies">
+          <h2 className="mt-[40px]">
+            {searchTerm ? `Results for "${searchTerm}"` : "All Movies"}
+          </h2>
           <ul className="text-white">
             {movies.length ? (
-              movies.map((m) => <li key={m.Title}>{m.Title ?? "Unknown"}</li>)
+              movies.map((movie) => <MovieCard key={movie.id} movie={movie} />)
             ) : (
               <li>
                 {loader ? (
@@ -66,7 +87,7 @@ const App = () => {
               </li>
             )}
           </ul>
-        </div>
+        </section>
       </div>
     </main>
   );
